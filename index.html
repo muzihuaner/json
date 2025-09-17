@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快点 JSON/YAML 格式化工具</title>
+     <meta content="json,json在线解析,json格式化,json格式验证,json转xml,xml转json,json压缩,json转义,js混淆加密,JSON转实体,json在线,JSON校验,json tools,主机评测,主机测评,新手教程,技术博客,电子工具" name="keywords"/>
+    <meta content="快点 JSON/YAML 格式化工具致力于在中国推广Json,并提供相关的Json解析、验证、格式化、压缩、编辑器以及Json与XML相互转换等服务" name="description"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 标题栏 -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">快点 JSON/YAML 格式化工具</h1>
+            <div class="flex space-x-4">
+                <button id="themeToggle" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                    切换主题
+                </button>
+            </div>
+        </div>
+
+        <!-- 工具栏 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+            <div class="flex flex-wrap gap-4">
+                <select id="formatType" class="px-4 py-2 border rounded dark:bg-gray-700 dark:text-white">
+                    <option value="json">JSON</option>
+                    <option value="yaml">YAML</option>
+                </select>
+                <button id="formatBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">格式化</button>
+                <button id="minifyBtn" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">压缩</button>
+                <button id="copyBtn" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">复制</button>
+                <button id="downloadBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">导出</button>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="wrapLines" class="form-checkbox">
+                    <label for="wrapLines" class="text-gray-700 dark:text-gray-300">自动换行</label>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="showLineNumbers" class="form-checkbox" checked>
+                    <label for="showLineNumbers" class="text-gray-700 dark:text-gray-300">显示行号</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 编辑器容器 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- 输入编辑器 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">输入</h2>
+                <div id="inputEditor" class="w-full h-[600px] border rounded"></div>
+            </div>
+            <!-- 输出编辑器 -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">输出</h2>
+                <div id="outputEditor" class="w-full h-[600px] border rounded"></div>
+            </div>
+        </div>
+
+        <!-- 错误提示 -->
+        <div id="errorMsg" class="mt-4 text-red-500 hidden"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

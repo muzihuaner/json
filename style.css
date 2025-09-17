@@ -1,0 +1,67 @@
+/* CodeMirror 自定义样式 */
+.CodeMirror {
+    height: 100%;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 14px;
+}
+
+.dark .CodeMirror {
+    border-color: #4a5568;
+}
+
+/* 暗色主题下的 CodeMirror 样式 */
+.dark .CodeMirror {
+    background-color: #1a202c;
+    color: #e2e8f0;
+}
+
+.dark .CodeMirror-gutters {
+    background-color: #2d3748;
+    border-right: 1px solid #4a5568;
+}
+
+.dark .CodeMirror-linenumber {
+    color: #a0aec0;
+}
+
+/* 拖放区域样式 */
+.drag-over {
+    border: 2px dashed #4299e1 !important;
+    background-color: rgba(66, 153, 225, 0.1) !important;
+}
+
+/* 错误提示样式 */
+.error-line {
+    background-color: rgba(245, 101, 101, 0.2);
+}
+
+/* 自定义滚动条 */
+.CodeMirror-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.CodeMirror-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.dark .CodeMirror-scrollbar::-webkit-scrollbar-track {
+    background: #2d3748;
+}
+
+.CodeMirror-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.dark .CodeMirror-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a5568;
+}
+
+.CodeMirror-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.dark .CodeMirror-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #718096;
+}
