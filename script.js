@@ -42,7 +42,15 @@ function initializeEventListeners() {
     document.getElementById('minifyBtn').addEventListener('click', minifyCode);
 
     // 复制按钮
-    document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+        try {
+            const text = outputEditor.getValue();
+            await navigator.clipboard.writeText(text);
+            showToast();
+        } catch (err) {
+            showError('复制失败：' + err.message);
+        }
+    });
 
     // 下载按钮
     document.getElementById('downloadBtn').addEventListener('click', downloadOutput);
@@ -151,6 +159,19 @@ async function copyToClipboard() {
     } catch (error) {
         showError('复制失败：' + error.message);
     }
+}
+
+// 显示提示的函数
+function showToast() {
+    const toast = document.getElementById('copyToast');
+    toast.style.transform = 'translateY(0)';
+    toast.style.opacity = '1';
+    
+    // 2秒后隐藏提示
+    setTimeout(() => {
+        toast.style.transform = 'translateY(100%)';
+        toast.style.opacity = '0';
+    }, 2000);
 }
 
 // 下载输出
