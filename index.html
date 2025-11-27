@@ -1,76 +1,859 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>快点 JSON/YAML 格式化工具</title>
-     <meta content="json,json在线解析,json格式化,json格式验证,json转xml,xml转json,json压缩,json转义,js混淆加密,JSON转实体,json在线,JSON校验,json tools,主机评测,主机测评,新手教程,技术博客,电子工具" name="keywords"/>
-    <meta content="快点 JSON/YAML 格式化工具致力于在中国推广Json,并提供相关的Json解析、验证、格式化、压缩、编辑器以及Json与XML相互转换等服务" name="description"/>
+    <meta
+        content="json,json在线解析,json格式化,json格式验证,json转xml,xml转json,json压缩,json转义,js混淆加密,JSON转实体,json在线,JSON校验,json tools"
+        name="keywords" />
+    <meta content="快点 JSON/YAML 格式化工具致力于在中国推广Json,并提供相关的Json解析、验证、格式化、压缩、编辑器以及Json与XML相互转换等服务" name="description" />
+
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+
+    <style>
+        :root {
+            --bg-editor: #1e1e1e;
+            --bg-sidebar: #252526;
+            --line-height: 1.5rem;
+            --code-padding-top: 1rem;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-editor);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #424242;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4f4f4f;
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: var(--bg-editor);
+        }
+
+        .code-font {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: var(--line-height);
+        }
+
+        .line-numbers {
+            text-align: right;
+            color: #858585;
+            padding-right: 16px;
+            padding-top: var(--code-padding-top);
+            user-select: none;
+            flex-shrink: 0;
+            transition: width 0.3s, padding-right 0.3s;
+            overflow-y: hidden;
+        }
+
+        pre code.hljs {
+            padding: 0 !important;
+            padding-top: var(--code-padding-top);
+            background: transparent !important;
+            line-height: var(--line-height) !important;
+        }
+
+        #codeView pre {
+            margin: 0 !important;
+        }
+
+        .resizer {
+            width: 5px;
+            cursor: col-resize;
+            background: #333;
+            transition: background 0.2s;
+            z-index: 20;
+        }
+
+        .resizer:hover,
+        .resizer.active {
+            background: #007fd4;
+        }
+
+        .tree-node-line {
+            line-height: var(--line-height);
+            cursor: default;
+            padding-left: 10px;
+        }
+
+        .tree-node-line.is-container {
+            cursor: pointer;
+        }
+
+        .tree-node-key {
+            color: #9cdcfe;
+        }
+
+        .tree-node-separator {
+            color: #d4d4d4;
+        }
+
+        .tree-node-string {
+            color: #ce9178;
+        }
+
+        .tree-node-number {
+            color: #b5cea8;
+        }
+
+        .tree-node-boolean {
+            color: #569cd6;
+        }
+
+        .tree-node-null {
+            color: #569cd6;
+        }
+
+        .tree-icon {
+            display: inline-block;
+            width: 1em;
+            text-align: center;
+            margin-right: 5px;
+            color: #d4d4d4;
+        }
+
+        .tree-icon-open::after {
+            content: '▼';
+        }
+
+        .tree-icon-closed::after {
+            content: '►';
+        }
+
+        .tree-children {
+            border-left: 1px dotted #444;
+            margin-left: 12px;
+            padding-left: 5px;
+            overflow: hidden;
+        }
+
+        .collapsed {
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: max-height 0.2s ease-out, opacity 0.2s ease-out, visibility 0.2s;
+        }
+
+        .expanded {
+            max-height: 20000px;
+            opacity: 1;
+            visibility: visible;
+            transition: max-height 0.4s ease-in, opacity 0.4s ease-in, visibility 0.4s;
+        }
+
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 40;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-container {
+            background-color: #252526;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-    <div class="container mx-auto px-4 py-8">
-        <!-- 标题栏 -->
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">快点 JSON/YAML 格式化工具</h1>
-            <div class="flex space-x-4">
-                <button id="themeToggle" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-                    切换主题
+
+<body class="bg-[#1e1e1e] text-gray-300 h-screen flex flex-col overflow-hidden">
+
+    <header class="h-14 bg-[#333333] flex items-center justify-between px-4 shadow-md z-30 shrink-0">
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 text-white font-semibold tracking-wide">
+                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                </svg>
+                <span>Format<span class="text-blue-400">Hub</span></span>
+            </div>
+
+            <div class="h-6 w-px bg-gray-600 mx-2"></div>
+
+            <div class="flex gap-2">
+                <button onclick="process('json')"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-[#007fd4] hover:bg-[#0062a3] text-white text-xs rounded transition shadow-sm">
+                    JSON 格式化
+                </button>
+                <button onclick="process('yaml')"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded transition shadow-sm">
+                    YAML 格式化
+                </button>
+                <button onclick="compress()"
+                    class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded transition">
+                    压缩
                 </button>
             </div>
         </div>
 
-        <!-- 工具栏 -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
-            <div class="flex flex-wrap gap-4">
-                <select id="formatType" class="px-4 py-2 border rounded dark:bg-gray-700 dark:text-white">
-                    <option value="json">JSON</option>
-                    <option value="yaml">YAML</option>
-                </select>
-                <button id="formatBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">格式化</button>
-                <button id="minifyBtn" class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">压缩</button>
-                <button id="copyBtn" class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">复制</button>
-                <button id="downloadBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">导出</button>
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="wrapLines" class="form-checkbox">
-                    <label for="wrapLines" class="text-gray-700 dark:text-gray-300">自动换行</label>
+        <div class="flex items-center gap-3">
+            <button onclick="loadExampleData()"
+                class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs rounded transition shadow-sm">
+                载入示例
+            </button>
+            <button onclick="downloadFile()" class="text-gray-400 hover:text-white transition" title="下载文件">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+            </button>
+            <button onclick="clearAll()" class="text-gray-400 hover:text-red-400 transition" title="清空">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                    </path>
+                </svg>
+            </button>
+            <button onclick="showAboutModal()" class="text-gray-400 hover:text-white transition ml-2" title="关于">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden relative">
+
+        <section id="leftPane" class="flex flex-col min-w-[200px]" style="width: 50%;">
+            <div
+                class="bg-[#252526] text-xs text-gray-400 px-4 py-2 uppercase tracking-wider font-semibold flex justify-between">
+                <span>Input (Auto-save)</span>
+                <span id="inputStats" class="font-mono">Lines: 0</span>
+            </div>
+            <textarea id="inputArea"
+                class="flex-1 bg-[#1e1e1e] text-[#d4d4d4] p-4 resize-none focus:outline-none code-font border-none w-full"
+                placeholder="// 在此粘贴 JSON 或 YAML..." spellcheck="false"></textarea>
+        </section>
+
+        <div id="resizer" class="resizer"></div>
+
+        <section class="flex-1 flex flex-col min-w-[200px] bg-[#1e1e1e] border-l border-gray-800">
+            <div class="bg-[#252526] h-[33px] flex-shrink-0">
+                <div class="flex justify-between items-center h-full">
+                    <div class="flex">
+                        <button id="codeTab" onclick="switchView('code')"
+                            class="tab-button bg-[#1e1e1e] text-white text-xs px-4 py-2 border-r border-gray-700 font-semibold transition">
+                            代码视图
+                        </button>
+                        <button id="treeTab" onclick="switchView('tree')"
+                            class="tab-button text-gray-400 hover:bg-[#1e1e1e]/50 text-xs px-4 py-2 border-r border-gray-700 transition">
+                            树形视图
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-3 pr-4">
+                        <button onclick="toggleLineNumbers()" id="lineNumToggle"
+                            class="text-xs text-gray-400 hover:text-white transition hidden md:block">
+                            <span class="underline">显示行号</span>
+                        </button>
+                        <span id="outputStats" class="font-mono text-xs text-gray-500 hidden md:inline"></span>
+                        <button onclick="copyOutput()" id="copyBtn"
+                            class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded transition">
+                            复制
+                        </button>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="showLineNumbers" class="form-checkbox" checked>
-                    <label for="showLineNumbers" class="text-gray-700 dark:text-gray-300">显示行号</label>
+            </div>
+
+            <div id="codeView" class="flex-1 flex overflow-auto relative custom-scroll">
+                <div id="lineNumbers" class="line-numbers code-font bg-[#1e1e1e]" style="width: 50px;"></div>
+
+                <pre
+                    class="flex-1 m-0"><code id="outputCode" class="code-font language-json block" contenteditable="false"></code></pre>
+            </div>
+
+            <div id="treeView" class="flex-1 overflow-auto p-4 code-font hidden">
+                <div id="treeContent">
+                    <p class="text-gray-500">请先格式化数据...</p>
+                </div>
+            </div>
+        </section>
+
+        <div id="errorToast"
+            class="absolute bottom-6 right-6 max-w-md bg-red-900 border border-red-700 text-white px-4 py-3 rounded shadow-2xl transform translate-x-full opacity-0 transition-all duration-300 pointer-events-none flex items-start gap-3 z-50">
+            <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                </path>
+            </svg>
+            <div>
+                <h4 class="font-bold text-sm">解析错误</h4>
+                <p id="errorMsg" class="text-xs font-mono mt-1 opacity-90 break-words"></p>
+            </div>
+        </div>
+
+        <div id="aboutModal" class="modal-overlay">
+            <div class="modal-container p-6">
+                <div class="flex justify-between items-start border-b border-gray-700 pb-3 mb-4">
+                    <h3 class="text-xl font-bold text-white">关于 FormatHub</h3>
+                    <button onclick="hideAboutModal()" class="text-gray-400 hover:text-white transition p-1">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="text-sm space-y-4">
+                    <h4 class="font-semibold text-gray-300">功能介绍：</h4>
+                    <ul class="list-disc list-inside ml-4 space-y-1 text-gray-400">
+                        <li>**JSON/YAML 格式化：** 一键美化、对齐输入内容。</li>
+                        <li>**代码/树形视图：** 格式化后可在代码视图和交互式树形结构视图之间切换。</li>
+                        <li>**压缩功能：** 将格式化的数据压缩为紧凑的单行 JSON。</li>
+                        <li>**数据持久化：** 输入内容自动保存至本地浏览器存储。</li>
+                    </ul>
+
+                    <h4 class="font-semibold text-gray-300 pt-2">项目来源：</h4>
+                    <p class="text-gray-400">
+                        本项目基于开源实现，灵感来自开发者工具，旨在提供快速可靠的数据处理能力。
+                    </p>
+
+                    <h4 class="font-semibold text-gray-300 pt-2">GitHub：</h4>
+                    <a href="https://github.com/muzihuaner/json" target="_blank"
+                        class="text-blue-400 hover:text-blue-300 underline break-all">
+                        https://github.com/muzihuaner/json
+                    </a>
+                </div>
+
+                <div class="flex justify-end pt-5">
+                    <button onclick="hideAboutModal()"
+                        class="px-4 py-2 bg-[#007fd4] hover:bg-[#0062a3] text-white text-sm rounded transition">
+                        关闭
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- 编辑器容器 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- 输入编辑器 -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">输入</h2>
-                <div id="inputEditor" class="w-full h-[600px] border rounded"></div>
-            </div>
-            <!-- 输出编辑器 -->
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-                <h2 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-300">输出</h2>
-                <div id="outputEditor" class="w-full h-[600px] border rounded"></div>
-            </div>
-        </div>
+    </main>
 
-        <!-- 错误提示 -->
-        <div id="errorMsg" class="mt-4 text-red-500 hidden"></div>
-
-        <!-- 复制成功提示 -->
-        <div id="copyToast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 translate-y-full opacity-0">
-            复制成功！
+    <footer class="bg-[#007fd4] text-white text-xs py-1 px-4 flex justify-between select-none shrink-0">
+        <div class="flex gap-4 items-center">
+            <span class="font-bold">READY</span>
+            <span class="h-4 w-px bg-white/50"></span>
+            <span id="fileSize" class="font-mono">0 KB</span>
         </div>
-    </div>
-    <script src="script.js"></script>
+        <div class="opacity-80">
+            JSON/YAML Formatter v3.0
+        </div>
+    </footer>
+
+    <script>
+
+        const els = {
+            input: document.getElementById('inputArea'),
+            outputCode: document.getElementById('outputCode'),
+            lineNumbers: document.getElementById('lineNumbers'),
+            treeContent: document.getElementById('treeContent'),
+            codeView: document.getElementById('codeView'),
+            treeView: document.getElementById('treeView'),
+            codeTab: document.getElementById('codeTab'),
+            treeTab: document.getElementById('treeTab'),
+            lineNumToggle: document.getElementById('lineNumToggle'),
+            toast: document.getElementById('errorToast'),
+            errorMsg: document.getElementById('errorMsg'),
+            inputStats: document.getElementById('inputStats'),
+            outputStats: document.getElementById('outputStats'),
+            fileSize: document.getElementById('fileSize'),
+            resizer: document.getElementById('resizer'),
+            leftPane: document.getElementById('leftPane'),
+            aboutModal: document.getElementById('aboutModal')
+        };
+
+        let currentMode = 'json';
+        let lineNumbersVisible = true;
+        let currentView = 'code';
+
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('json_formatter_content');
+            if (saved) {
+                els.input.value = saved;
+                updateInputStats();
+            }
+
+            switchView('code');
+
+            updateLineNumberUI();
+        });
+
+        els.input.addEventListener('input', () => {
+            localStorage.setItem('json_formatter_content', els.input.value);
+            updateInputStats();
+        });
+
+        function updateInputStats() {
+            const text = els.input.value;
+            const lines = text.split(/\r\n|\r|\n/).length;
+            els.inputStats.textContent = `Lines: ${lines} | Chars: ${text.length}`;
+            els.fileSize.textContent = (new TextEncoder().encode(text).length / 1024).toFixed(2) + ' KB';
+        }
+
+
+        function process(type) {
+            hideError();
+            const raw = els.input.value.trim();
+            if (!raw) {
+                els.treeContent.innerHTML = '<p class="text-gray-500">请先粘贴或输入数据...</p>';
+                renderOutput('', currentMode);
+                return;
+            }
+
+            let obj;
+            try {
+
+                try {
+                    obj = JSON.parse(raw);
+                } catch (e) {
+                    obj = jsyaml.load(raw);
+                }
+
+
+                if (obj === null || typeof obj === 'undefined') {
+                    renderOutput(raw, 'text');
+                    els.treeContent.innerHTML = `<p class="text-gray-500">无法对纯文本或简单值进行结构化树形展示。</p>`;
+                    return;
+                }
+
+
+                const isContainer = typeof obj === 'object';
+
+
+                if (!isContainer) {
+                    let result = raw;
+                    let lang = 'text';
+
+
+                    if (typeof obj === 'string') {
+                        result = JSON.stringify(obj);
+                        lang = 'json';
+                    } else if (typeof obj !== 'undefined') {
+                        result = String(obj);
+                        lang = 'json';
+                    } else {
+
+                        lang = 'text';
+                    }
+
+                    renderOutput(result, lang);
+                    els.treeContent.innerHTML = `<p class="text-gray-500">无法对纯文本或简单值进行结构化树形展示。</p>`;
+                    return;
+                }
+
+
+                let result = '';
+                if (type === 'json') {
+                    result = JSON.stringify(obj, null, 2);
+                    currentMode = 'json';
+                } else {
+                    result = jsyaml.dump(obj, { indent: 2, skipInvalid: true });
+                    currentMode = 'yaml';
+                }
+
+
+                renderOutput(result, type);
+
+
+                els.treeContent.innerHTML = buildTreeHtml(obj);
+
+                els.treeContent.querySelectorAll('.tree-node-line.is-container').forEach(node => {
+                    node.addEventListener('click', toggleCollapse);
+                });
+
+
+            } catch (err) {
+                showError("解析或转换失败: " + err.message);
+
+                renderOutput(raw, 'text');
+                els.treeContent.innerHTML = `<p class="text-red-400">解析失败：${err.message}</p>`;
+            }
+        }
+
+        function compress() {
+            hideError();
+            const raw = els.input.value.trim();
+            if (!raw) return;
+
+            try {
+                let obj;
+                try { obj = JSON.parse(raw); } catch { obj = jsyaml.load(raw); }
+
+
+                if (obj === null || typeof obj === 'undefined') {
+                    showError("压缩失败: 内容不是有效的 JSON 或 YAML 对象/数组。");
+                    return;
+                }
+
+
+                if (typeof obj !== 'object') {
+                    showError("压缩失败: 内容不是有效的 JSON 或 YAML 对象/数组。");
+                    return;
+                }
+
+                const result = JSON.stringify(obj);
+                currentMode = 'json';
+                renderOutput(result, 'json');
+
+
+                els.treeContent.innerHTML = buildTreeHtml(obj);
+                els.treeContent.querySelectorAll('.tree-node-line.is-container').forEach(node => {
+                    node.addEventListener('click', toggleCollapse);
+                });
+
+            } catch (err) {
+                showError("压缩失败: " + err.message);
+            }
+        }
+
+
+        function renderOutput(code, lang) {
+
+            els.outputCode.textContent = code;
+
+
+            els.outputCode.className = `code-font language-${lang} block`;
+            delete els.outputCode.dataset.highlighted;
+            hljs.highlightElement(els.outputCode);
+
+
+            const lines = code.split(/\r\n|\r|\n/).length;
+            let numbersHtml = '';
+            for (let i = 1; i <= lines; i++) {
+                numbersHtml += `<div>${i}</div>`;
+            }
+            els.lineNumbers.innerHTML = numbersHtml;
+
+
+            updateLineNumberUI(lines);
+
+
+            els.outputStats.textContent = `Lines: ${lines} | Format: ${lang.toUpperCase()}`;
+        }
+
+        function toggleLineNumbers() {
+            lineNumbersVisible = !lineNumbersVisible;
+            updateLineNumberUI();
+        }
+
+
+        function updateLineNumberUI(linesCount = els.lineNumbers.children.length) {
+
+
+            const maxLineLength = String(linesCount).length;
+            const dynamicWidth = Math.max(3.5, maxLineLength * 0.6 + 1.5);
+
+            if (lineNumbersVisible) {
+                els.lineNumbers.style.width = `${dynamicWidth}rem`;
+                els.lineNumbers.style.paddingRight = '16px';
+
+                els.lineNumbers.style.visibility = 'visible';
+                els.outputCode.parentNode.style.paddingLeft = '16px';
+                els.lineNumToggle.innerHTML = `<u>隐藏行号</u>`;
+            } else {
+                els.lineNumbers.style.width = '0px';
+                els.lineNumbers.style.paddingRight = '0px';
+
+                els.lineNumbers.style.visibility = 'hidden';
+                els.outputCode.parentNode.style.paddingLeft = '4px';
+                els.lineNumToggle.innerHTML = `<u>显示行号</u>`;
+            }
+        }
+
+        function switchView(viewName) {
+            currentView = viewName;
+
+
+            els.codeView.classList.add('hidden');
+            els.treeView.classList.add('hidden');
+
+            const tabs = [els.codeTab, els.treeTab];
+            tabs.forEach(tab => {
+                tab.classList.remove('bg-[#1e1e1e]', 'text-white', 'font-semibold');
+                tab.classList.add('text-gray-400', 'hover:bg-[#1e1e1e]/50');
+            });
+
+
+            const activeTab = viewName === 'code' ? els.codeTab : els.treeTab;
+            const activeView = viewName === 'code' ? els.codeView : els.treeView;
+
+            activeView.classList.remove('hidden');
+
+            activeTab.classList.add('bg-[#1e1e1e]', 'text-white', 'font-semibold');
+            activeTab.classList.remove('text-gray-400', 'hover:bg-[#1e1e1e]/50');
+        }
+
+
+
+
+        function buildTreeHtml(obj, keyName = null, level = 0) {
+
+            if (obj === null || typeof obj === 'undefined') {
+                const className = (obj === null) ? 'tree-node-null' : 'text-gray-500';
+                const valueText = (obj === null) ? 'null' : 'undefined';
+
+                let header = `<div class="tree-node-line" data-type="primitive" data-level="${level}">`;
+                header += `<span style="padding-left: ${level * 10}px;"></span>`;
+                header += `<span class="tree-icon"></span>`;
+                if (keyName !== null) {
+                    header += `<span class="tree-node-key">${keyName}</span><span class="tree-node-separator">: </span>`;
+                }
+                header += `<span class="${className}">${valueText}</span>`;
+                header += `</div>`;
+                return header;
+            }
+
+
+            let html = '';
+
+            const type = Array.isArray(obj) ? 'array' : (typeof obj === 'object' ? 'object' : typeof obj);
+            const isContainer = type === 'object' || type === 'array';
+            const size = isContainer ? (Array.isArray(obj) ? `[${obj.length}]` : `{${Object.keys(obj).length}}`) : '';
+
+
+            let header = `<div class="tree-node-line ${isContainer ? 'is-container' : ''}" data-type="${type}" data-level="${level}">`;
+
+
+            header += `<span style="padding-left: ${level * 10}px;"></span>`;
+
+
+            if (isContainer) {
+                header += `<span class="tree-icon tree-icon-open"></span>`;
+            } else {
+                header += `<span class="tree-icon"></span>`;
+            }
+
+
+            if (keyName !== null) {
+                header += `<span class="tree-node-key">${keyName}</span><span class="tree-node-separator">: </span>`;
+            }
+
+
+            if (isContainer) {
+                header += `<span class="text-gray-500">${size}</span>`;
+            } else {
+                const value = obj;
+                let className = `tree-node-${type}`;
+                let valueText = String(value);
+
+                if (type === 'string') {
+                    valueText = `"${value}"`;
+                } else if (type === 'boolean') {
+                    valueText = value ? 'true' : 'false';
+                }
+
+                header += `<span class="${className}">${valueText}</span>`;
+            }
+
+            header += `</div>`;
+            html += header;
+
+
+            if (isContainer) {
+                let childrenHtml = `<div class="tree-children expanded" data-level="${level}">`;
+
+
+                const keys = Array.isArray(obj) ? Array.from({ length: obj.length }, (_, i) => i) : Object.keys(obj);
+
+                for (const key of keys) {
+                    childrenHtml += buildTreeHtml(obj[key], key, level + 1);
+                }
+
+                childrenHtml += `</div>`;
+                html += childrenHtml;
+            }
+
+            return html;
+        }
+
+        function toggleCollapse(e) {
+            const line = e.currentTarget;
+            const children = line.nextElementSibling;
+            const icon = line.querySelector('.tree-icon');
+
+
+            if (!children || !icon || !line.classList.contains('is-container')) return;
+
+            if (children.classList.contains('expanded')) {
+                children.classList.remove('expanded');
+                children.classList.add('collapsed');
+                icon.classList.remove('tree-icon-open');
+                icon.classList.add('tree-icon-closed');
+            } else if (children.classList.contains('collapsed')) {
+                children.classList.remove('collapsed');
+                children.classList.add('expanded');
+                icon.classList.remove('tree-icon-closed');
+                icon.classList.add('tree-icon-open');
+            }
+        }
+
+
+
+        const EXAMPLE_DATA = `{
+    "name": "Acme Corp Configuration",
+    "version": "1.2.5",
+    "enabled": true,
+    "last_updated": null,
+    "services": [
+        {
+            "id": 101,
+            "name": "API Gateway",
+            "endpoint": "https://api.acme.com/v1",
+            "timeout_ms": 5000
+        },
+        {
+            "id": 102,
+            "name": "Database Pool",
+            "read_only": false,
+            "max_connections": 50
+        }
+    ],
+    "settings": {
+        "log_level": "DEBUG",
+        "retries": 3,
+        "features": ["auth", "caching"]
+    }
+}`;
+
+        function loadExampleData() {
+            els.input.value = EXAMPLE_DATA;
+            localStorage.setItem('json_formatter_content', EXAMPLE_DATA);
+            updateInputStats();
+            process('json');
+        }
+
+        function clearAll() {
+            if (confirm('确定清空所有内容吗？')) {
+                els.input.value = '';
+                els.outputCode.textContent = '';
+                els.lineNumbers.innerHTML = '';
+                els.treeContent.innerHTML = '<p class="text-gray-500">请先粘贴或输入数据...</p>';
+                localStorage.removeItem('json_formatter_content');
+                updateInputStats();
+                els.outputStats.textContent = '';
+                updateLineNumberUI(0);
+            }
+        }
+
+        function downloadFile() {
+            const content = els.outputCode.textContent;
+            if (!content) return;
+
+            const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+            const anchor = document.createElement("a");
+            anchor.href = URL.createObjectURL(blob);
+            anchor.download = `formatted.${currentMode}`;
+            anchor.click();
+            URL.revokeObjectURL(anchor.href);
+        }
+
+        function copyOutput() {
+            const text = els.outputCode.textContent;
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = document.getElementById('copyBtn').innerHTML;
+                const btn = document.getElementById('copyBtn');
+                btn.innerHTML = `<span class="text-green-400">已复制!</span>`;
+                setTimeout(() => btn.innerHTML = originalHtml, 1500);
+            });
+        }
+
+        function showError(msg) {
+            els.errorMsg.textContent = msg;
+            els.toast.classList.remove('translate-x-full', 'opacity-0');
+            setTimeout(() => {
+                els.toast.classList.add('translate-x-full', 'opacity-0');
+            }, 5000);
+        }
+
+        function hideError() {
+            els.toast.classList.add('translate-x-full', 'opacity-0');
+        }
+
+        function showAboutModal() {
+            els.aboutModal.style.display = 'flex';
+        }
+
+        function hideAboutModal() {
+            els.aboutModal.style.display = 'none';
+        }
+
+
+        let isResizing = false;
+
+        els.resizer.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            isResizing = true;
+            els.resizer.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            const containerWidth = document.body.clientWidth;
+
+            const newLeftWidth = (e.clientX / containerWidth) * 100;
+
+
+            if (newLeftWidth > 15 && newLeftWidth < 85) {
+                els.leftPane.style.width = `${newLeftWidth}%`;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                els.resizer.classList.remove('active');
+                document.body.style.cursor = 'default';
+            }
+        });
+
+
+
+        els.codeView.addEventListener('scroll', () => {
+
+
+
+            els.lineNumbers.scrollTop = els.codeView.scrollTop;
+        });
+
+
+        els.input.addEventListener('keydown', function (e) {
+            if (e.key == 'Tab') {
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "  " + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 2;
+            }
+        });
+    </script>
 </body>
+
 </html>
