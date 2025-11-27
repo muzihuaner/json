@@ -8,7 +8,8 @@
     <meta
         content="json,json在线解析,json格式化,json格式验证,json转xml,xml转json,json压缩,json转义,js混淆加密,JSON转实体,json在线,JSON校验,json tools"
         name="keywords" />
-    <meta content="快点 JSON/YAML 格式化工具致力于在中国推广Json,并提供相关的Json解析、验证、格式化、压缩、编辑器以及Json与XML相互转换等服务" name="description" />
+    <meta content="快点 JSON/YAML 格式化工具致力于在中国推广Json,并提供相关的Json解析、验证、格式化、压缩、编辑器以及Json与XML相互转换等服务"
+        name="description" />
 
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -27,6 +28,7 @@
             --code-padding-top: 1rem;
         }
 
+        /* 滚动条样式 */
         ::-webkit-scrollbar {
             width: 10px;
             height: 10px;
@@ -49,12 +51,14 @@
             background: var(--bg-editor);
         }
 
+        /* 字体 */
         .code-font {
             font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
             font-size: 13px;
             line-height: var(--line-height);
         }
 
+        /* 行号 */
         .line-numbers {
             text-align: right;
             color: #858585;
@@ -66,6 +70,7 @@
             overflow-y: hidden;
         }
 
+        /* 代码高亮区域 */
         pre code.hljs {
             padding: 0 !important;
             padding-top: var(--code-padding-top);
@@ -77,6 +82,7 @@
             margin: 0 !important;
         }
 
+        /* 拖拽条 */
         .resizer {
             width: 5px;
             cursor: col-resize;
@@ -85,11 +91,27 @@
             z-index: 20;
         }
 
+        @media (max-width: 767px) {
+            .resizer {
+                display: none;
+            }
+            /* 移动端操作按钮组的容器，允许水平滚动 */
+            .mobile-scroll-x {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 2px; /* 防止滚动条遮挡按钮 */
+            }
+            .mobile-scroll-x::-webkit-scrollbar {
+                height: 4px; /* 移动端滚动条细一点 */
+            }
+        }
+
         .resizer:hover,
         .resizer.active {
             background: #007fd4;
         }
 
+        /* 树形视图相关样式... (保持不变) */
         .tree-node-line {
             line-height: var(--line-height);
             cursor: default;
@@ -161,6 +183,7 @@
             transition: max-height 0.4s ease-in, opacity 0.4s ease-in, visibility 0.4s;
         }
 
+        /* 模态框 */
         .modal-overlay {
             background-color: rgba(0, 0, 0, 0.7);
             display: none;
@@ -180,60 +203,62 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             width: 90%;
             max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
     </style>
 </head>
 
 <body class="bg-[#1e1e1e] text-gray-300 h-screen flex flex-col overflow-hidden">
 
-    <header class="h-14 bg-[#333333] flex items-center justify-between px-4 shadow-md z-30 shrink-0">
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-white font-semibold tracking-wide">
-                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <header class="h-14 bg-[#333333] flex items-center justify-between px-2 sm:px-4 shadow-md z-30 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-4 overflow-x-hidden">
+            <div class="flex items-center gap-1 sm:gap-2 text-white font-semibold tracking-wide flex-shrink-0">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                 </svg>
-                <span>Format<span class="text-blue-400">Hub</span></span>
+                <span class="text-sm sm:text-base">Format<span class="text-blue-400">Hub</span></span>
             </div>
 
-            <div class="h-6 w-px bg-gray-600 mx-2"></div>
-
-            <div class="flex gap-2">
+            <div class="h-6 w-px bg-gray-600 mx-1 sm:mx-2 flex-shrink-0 hidden sm:block"></div>
+            
+            <div class="flex gap-2 mobile-scroll-x whitespace-nowrap overflow-y-hidden">
                 <button onclick="process('json')"
-                    class="flex items-center gap-2 px-3 py-1.5 bg-[#007fd4] hover:bg-[#0062a3] text-white text-xs rounded transition shadow-sm">
+                    class="flex-shrink-0 px-3 py-1 sm:px-3 sm:py-1.5 bg-[#007fd4] hover:bg-[#0062a3] text-white text-xs rounded transition shadow-sm">
                     JSON 格式化
                 </button>
                 <button onclick="process('yaml')"
-                    class="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded transition shadow-sm">
+                    class="flex-shrink-0 px-3 py-1 sm:px-3 sm:py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded transition shadow-sm">
                     YAML 格式化
                 </button>
                 <button onclick="compress()"
-                    class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded transition">
+                    class="flex-shrink-0 px-3 py-1 sm:px-3 sm:py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs rounded transition">
                     压缩
+                </button>
+                <button onclick="loadExampleData()"
+                    class="flex-shrink-0 px-3 py-1 sm:px-3 sm:py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs rounded transition shadow-sm">
+                    载入示例
                 </button>
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button onclick="loadExampleData()"
-                class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs rounded transition shadow-sm">
-                载入示例
-            </button>
+        <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             <button onclick="downloadFile()" class="text-gray-400 hover:text-white transition" title="下载文件">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
             </button>
             <button onclick="clearAll()" class="text-gray-400 hover:text-red-400 transition" title="清空">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                     </path>
                 </svg>
             </button>
-            <button onclick="showAboutModal()" class="text-gray-400 hover:text-white transition ml-2" title="关于">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="showAboutModal()" class="text-gray-400 hover:text-white transition ml-1 sm:ml-2" title="关于">
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
@@ -241,11 +266,13 @@
         </div>
     </header>
 
-    <main class="flex-1 flex overflow-hidden relative">
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
 
-        <section id="leftPane" class="flex flex-col min-w-[200px]" style="width: 50%;">
+        <section id="leftPane" class="flex flex-col min-w-full md:min-w-[200px] flex-1 md:flex-initial"
+            style="width: 100%; height: 50%; min-height: 200px;" 
+            data-initial-width="50%" data-initial-height="50%">
             <div
-                class="bg-[#252526] text-xs text-gray-400 px-4 py-2 uppercase tracking-wider font-semibold flex justify-between">
+                class="bg-[#252526] text-xs text-gray-400 px-4 py-2 uppercase tracking-wider font-semibold flex justify-between shrink-0">
                 <span>Input (Auto-save)</span>
                 <span id="inputStats" class="font-mono">Lines: 0</span>
             </div>
@@ -254,9 +281,10 @@
                 placeholder="// 在此粘贴 JSON 或 YAML..." spellcheck="false"></textarea>
         </section>
 
-        <div id="resizer" class="resizer"></div>
+        <div id="resizer" class="resizer hidden md:block"></div>
 
-        <section class="flex-1 flex flex-col min-w-[200px] bg-[#1e1e1e] border-l border-gray-800">
+        <section class="flex-1 flex flex-col min-w-full md:min-w-[200px] bg-[#1e1e1e] border-t md:border-t-0 md:border-l border-gray-800"
+            style="width: 100%; height: 50%; min-height: 200px;">
             <div class="bg-[#252526] h-[33px] flex-shrink-0">
                 <div class="flex justify-between items-center h-full">
                     <div class="flex">
@@ -271,10 +299,10 @@
                     </div>
                     <div class="flex items-center gap-3 pr-4">
                         <button onclick="toggleLineNumbers()" id="lineNumToggle"
-                            class="text-xs text-gray-400 hover:text-white transition hidden md:block">
+                            class="text-xs text-gray-400 hover:text-white transition hidden lg:block">
                             <span class="underline">显示行号</span>
                         </button>
-                        <span id="outputStats" class="font-mono text-xs text-gray-500 hidden md:inline"></span>
+                        <span id="outputStats" class="font-mono text-xs text-gray-500 hidden sm:inline"></span>
                         <button onclick="copyOutput()" id="copyBtn"
                             class="text-xs bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded transition">
                             复制
@@ -401,8 +429,48 @@
 
             switchView('code');
 
+            // 移动端默认隐藏行号
+            if (window.innerWidth < 768) {
+                lineNumbersVisible = false;
+            }
             updateLineNumberUI();
+
+            // 初始设置左右面板的尺寸（移动端无需设置）
+            const isDesktop = window.innerWidth >= 768;
+            if (isDesktop) {
+                els.leftPane.style.width = els.leftPane.dataset.initialWidth;
+                els.leftPane.style.height = 'auto'; // 覆盖移动端设置
+            } else {
+                els.leftPane.style.width = '100%';
+                // 确保移动端初始高度设置生效
+                const rightPane = document.querySelector('section:last-child');
+                els.leftPane.style.height = els.leftPane.dataset.initialHeight;
+                rightPane.style.height = rightPane.style.minHeight;
+            }
         });
+
+        // 监听窗口大小变化，调整布局模式
+        window.addEventListener('resize', () => {
+            const isDesktop = window.innerWidth >= 768;
+            const rightPane = document.querySelector('section:last-child');
+
+            if (isDesktop) {
+                // 桌面模式：左右分屏
+                els.leftPane.style.width = els.leftPane.dataset.initialWidth;
+                els.leftPane.style.height = 'auto';
+                rightPane.style.width = 'auto';
+                rightPane.style.height = 'auto';
+            } else {
+                // 移动模式：上下堆叠
+                els.leftPane.style.width = '100%';
+                els.leftPane.style.height = els.leftPane.dataset.initialHeight;
+                rightPane.style.width = '100%';
+                rightPane.style.height = els.leftPane.dataset.initialHeight; // 保持两个面板高度相同
+            }
+            // 重新检查是否显示行号开关
+            updateLineNumberUI(); 
+        });
+
 
         els.input.addEventListener('input', () => {
             localStorage.setItem('json_formatter_content', els.input.value);
@@ -568,6 +636,17 @@
 
             const maxLineLength = String(linesCount).length;
             const dynamicWidth = Math.max(3.5, maxLineLength * 0.6 + 1.5);
+
+            // 只有当屏幕宽度大于等于 1024px (lg) 时，才显示行号开关按钮
+            if (window.innerWidth >= 1024) {
+                 els.lineNumToggle.classList.remove('hidden');
+            } else {
+                 els.lineNumToggle.classList.add('hidden');
+                 // 移动端或中等屏幕不显示行号
+                 if (window.innerWidth < 1024) {
+                     lineNumbersVisible = false;
+                 }
+            }
 
             if (lineNumbersVisible) {
                 els.lineNumbers.style.width = `${dynamicWidth}rem`;
@@ -805,41 +884,39 @@
         }
 
 
+        // 拖拽逻辑 (仅桌面端)
         let isResizing = false;
 
-        els.resizer.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            isResizing = true;
-            els.resizer.classList.add('active');
-            document.body.style.cursor = 'col-resize';
-        });
+        if (window.innerWidth >= 768) {
+            els.resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isResizing = true;
+                els.resizer.classList.add('active');
+                document.body.style.cursor = 'col-resize';
+            });
 
-        document.addEventListener('mousemove', (e) => {
-            if (!isResizing) return;
-            const containerWidth = document.body.clientWidth;
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                const containerWidth = document.body.clientWidth;
 
-            const newLeftWidth = (e.clientX / containerWidth) * 100;
-
-
-            if (newLeftWidth > 15 && newLeftWidth < 85) {
-                els.leftPane.style.width = `${newLeftWidth}%`;
-            }
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (isResizing) {
-                isResizing = false;
-                els.resizer.classList.remove('active');
-                document.body.style.cursor = 'default';
-            }
-        });
+                const newLeftWidth = (e.clientX / containerWidth) * 100;
 
 
+                if (newLeftWidth > 15 && newLeftWidth < 85) {
+                    els.leftPane.style.width = `${newLeftWidth}%`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    els.resizer.classList.remove('active');
+                    document.body.style.cursor = 'default';
+                }
+            });
+        }
 
         els.codeView.addEventListener('scroll', () => {
-
-
-
             els.lineNumbers.scrollTop = els.codeView.scrollTop;
         });
 
